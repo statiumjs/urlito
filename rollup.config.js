@@ -1,70 +1,45 @@
-import resolve from 'rollup-plugin-node-resolve';
-import commonjs from 'rollup-plugin-commonjs';
-import babel from 'rollup-plugin-babel';
-import sucrase from 'rollup-plugin-sucrase';
+import { getBabelOutputPlugin } from '@rollup/plugin-babel';
+import cleanup from 'rollup-plugin-cleanup';
+import { terser } from "rollup-plugin-terser";
 import pkg from './package.json';
 
-const config = {
-    input: 'src/index.js',
-    
-    // self-serve-ui project already includes React and Lodash as dependencies,
-    // no reason to bundle these with Statium
-    external: [
-        'lodash.get',
-        'lodash.set',
-        'lodash.unset',
-        'lodash.has',
-        'lodash.clonedeep',
-        'lodash.isequal',
+const terserConfig = {
+  mangle: {
+    reserved: [
+      'getValuesFromUri', 'setValuesToUri', 'stateToUri',
     ],
-    
-    context: null,
-    
-    // Rollup will warn about mixing default exports with named exports.
-    // I do not consider this a bad practice, so do React authors.
-    onwarn: (warning, warn) => {
-        if (warning.code === 'MIXED_EXPORTS') {
-            return;
-        }
-        
-        warn(warning);
-    },
+  },
 };
 
+
 export default [{
-    ...config,
-    
-    output: [{
-        file: pkg.main,
-        format: 'cjs',
-    }, {
-        file: pkg.module,
-        format: 'es',
-    }],
+  input: 'src/index.js',
+
+  context: null,
+
+  output: [{
+    file: pkg.main,
+    format: 'cjs',
+    sourcemap: true,
+    exports: 'named',
     plugins: [
-        resolve({
-            extensions: ['.js']
-        }),
-        babel({
-            exclude: ['node_modules/**']
-        }),
-        commonjs(),
+      // getBabelOutputPlugin does not load .babelrc config,
+      // all configuration needs to be passed explicitly
+      getBabelOutputPlugin({
+        runtimeHelpers: true,
+        presets: [
+          "@babel/preset-env",
+        ],
+      }),
+      terser(terserConfig),
     ],
-}, {
-    ...config,
-    
-    output: [{
-        file: pkg["module-es6+"],
-        format: 'es',
-    }],
+  }, {
+    file: pkg.module,
+    format: 'es',
+    sourcemap: true,
     plugins: [
-        resolve({
-            extensions: ['.js']
-        }),
-        sucrase({
-            exclude: ['node_modules/**'],
-            transforms: ['jsx']
-        }),
-        commonjs(),
+      terser(terserConfig),
     ],
+  }],
+  plugins: [cleanup()],
 }];
