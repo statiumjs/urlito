@@ -1,6 +1,6 @@
 {
   "name": "urlito",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Simple API for persisting data structures to URL",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
@@ -10,7 +10,8 @@
     "lint": "eslint src test",
     "test": "jest",
     "prebuild": "eslint src",
-    "pretest": "yarn run build"
+    "pretest": "yarn run build",
+    "prepublish": "yarn build"
   },
   "dependencies": {},
   "devDependencies": {
