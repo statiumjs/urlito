@@ -1,7 +1,13 @@
 const identity = o => o;
 
 export const setUriSearchString = search => {
-  window.history.replaceState({}, '', `${window.location.pathname}?${search}`);
+  search = String(search);
+
+  if (window.location.search !== `?${search}`) {
+    window.history.replaceState(
+      {}, '', `${window.location.pathname}${search ? '?' + search : ""}`
+    );
+  }
 };
 
 const normalizeKeys = keys => {
